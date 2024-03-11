@@ -1,0 +1,165 @@
+{
+  "Uuid": "cf8a63fb-793f-43cf-83b1-24d59f237802",
+  "IsCustomNode": true,
+  "Category": "LIVIO",
+  "Description": "This node will get all the structural openings from elements",
+  "Name": "Openings_From_Elements",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\r\nfrom System.Collections.Generic import List\r\n\r\n# Load Revit API\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import *\r\nfrom Autodesk.Revit.DB.Structure import *\r\nfrom Autodesk.Revit.Creation import *\r\n\r\n# Load Revit Nodes\r\nclr.AddReference('RevitNodes')\r\nimport Revit\r\nclr.ImportExtensions(Revit.GeometryConversion)\r\nclr.ImportExtensions(Revit.Elements)\r\n\r\n# Load Revit Services\r\nclr.AddReference('RevitServices')\r\nimport RevitServices\r\nfrom RevitServices.Persistence import DocumentManager\r\nfrom RevitServices.Transactions import TransactionManager\r\n\r\n# The inputs to this node will be stored as a list in the IN variables.\r\nelements = IN[0]\r\nif isinstance(elements, list):\r\n    elements = [UnwrapElement(elem) for elem in elements]\r\nelse:\r\n    elements = [UnwrapElement(elements)]\r\n\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\n\r\n# Create ElementClassFilter for Openings\r\nclassFilter = ElementClassFilter(Opening)\r\n\r\n# Place your code below this line\r\n\r\n# Get dependent elements using LINQ in Python\r\nopenings = []\r\nfor element in elements:\r\n    openings.append([doc.GetElement(x) for x in element.GetDependentElements(classFilter)])\r\n\t\r\n# Assign your output to the OUT variable.\r\nOUT = openings\r\n",
+      "VariableInputPorts": true,
+      "Id": "9a61e32d8848412fbd3a2e3dbeea157f",
+      "Inputs": [
+        {
+          "Id": "2f8ef7c951d34e2ba7b06bcd5c9e8ba0",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "d6d18ea5fe8b4b8bb0492fb00232c447",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "elements",
+        "TypeName": "var",
+        "TypeRank": -1,
+        "DefaultValue": null,
+        "Description": "elements"
+      },
+      "Id": "b27010f75fa548feb28862b22f96dbe1",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "2e5f36f866f34b92884db4869bb537cc",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+      "NodeType": "OutputNode",
+      "ElementResolver": null,
+      "Symbol": "OUT",
+      "Id": "37823cbe6f8e4657bb35494ae8a496e9",
+      "Inputs": [
+        {
+          "Id": "d85ea51fdab14d818d5483480183ce10",
+          "Name": "",
+          "Description": "",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [],
+      "Replication": "Disabled",
+      "Description": "A function output, use with custom nodes"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "d6d18ea5fe8b4b8bb0492fb00232c447",
+      "End": "d85ea51fdab14d818d5483480183ce10",
+      "Id": "01c822ff534c49f4a144be667c4e6f6a"
+    },
+    {
+      "Start": "2e5f36f866f34b92884db4869bb537cc",
+      "End": "2f8ef7c951d34e2ba7b06bcd5c9e8ba0",
+      "Id": "53f1ee49cad94469b48ea90a9bd06405"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": false,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.6.2.15705",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "9a61e32d8848412fbd3a2e3dbeea157f",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 250.0,
+        "Y": 0.0
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "b27010f75fa548feb28862b22f96dbe1",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -74.399999999999977,
+        "Y": -19.199999999999989
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Output",
+        "Id": "37823cbe6f8e4657bb35494ae8a496e9",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 449.8,
+        "Y": 0.0
+      }
+    ],
+    "Annotations": [],
+    "X": 180.80000000000013,
+    "Y": 182.40000000000009,
+    "Zoom": 1.0
+  }
+}
