@@ -11,6 +11,11 @@ This node helps to create the assembly views, and schedules and apply view templ
 
 ![image](https://github.com/kapilpalewar/Custom-Nodes-/assets/103321387/2aecb2d6-cd95-4e0c-a797-c8eb918ce4dd)
 
+# 3. Openings_From_Elements & Opening_To_Curves
+This will return all the openings from the elements. Opening_To_Curves Node will give us the curve of the opening
+
+![image](https://github.com/kapilpalewar/Custom-Nodes-/assets/103321387/52591445-7bc3-4565-a99a-99401bd665e2)
+
 
 
 
