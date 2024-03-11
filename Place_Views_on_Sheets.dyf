@@ -1,0 +1,324 @@
+{
+  "Uuid": "217caf07-dc53-44ec-afe7-32a8bd071574",
+  "IsCustomNode": true,
+  "Category": "LIVIO",
+  "Description": "Place views and schedule on sheets",
+  "Name": "Place_Views_ON_Sheets",
+  "ElementResolver": {
+    "ResolutionMap": {
+      "Point.ByCoordinates": {
+        "Key": "Autodesk.DesignScript.Geometry.Point",
+        "Value": "ProtoGeometry.dll"
+      },
+      "Point": {
+        "Key": "Autodesk.DesignScript.Geometry.Point",
+        "Value": "ProtoGeometry.dll"
+      }
+    }
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\n\nclr.AddReference(\"RevitServices\")\nimport RevitServices \nfrom RevitServices.Persistence import DocumentManager\nfrom RevitServices.Transactions import TransactionManager\ndoc = DocumentManager.Instance.CurrentDBDocument\nuidoc = DocumentManager.Instance.CurrentUIDocument\nclr.AddReference(\"RevitNodes\")\nimport Revit\nclr.ImportExtensions(Revit.Elements)\nclr.ImportExtensions(Revit.GeometryConversion)\nclr.AddReference(\"RevitAPI\")\nfrom Autodesk.Revit.DB import *\nfrom Autodesk.Revit.DB.Electrical import PanelScheduleSheetInstance as pssi\nclr.AddReference(\"RevitAPIUI\")\nfrom Autodesk.Revit.UI import *\n\ndef tolist(obj1):\n\tif hasattr(obj1,\"__iter__\"): return obj1\n\telse: return [obj1]\n\nviews = tolist(IN[0])\nsheets = tolist(IN[1])\nlocs = tolist(IN[2])\nviewports = []\nfailed = []\n\ni = 0;\nif len(views) == len(locs):\n\tfor v in views:\n\t\tloc = XYZ(locs[i].X, locs[i].Y, locs[i].Z)\n\t\tview = UnwrapElement(v)\n\t\tfor vs in sheets:\n\t\t\tsheet = UnwrapElement(vs)\n\t\t\tcanAddToSht = True;\n\t\t\tif view.ViewType != ViewType.Schedule and view.ViewType != ViewType.PanelSchedule:\t\t\t\t\n\t\t\t\tcanAddToSht = Viewport.CanAddViewToSheet(doc, sheet.Id, view.Id)\t\t\t\t\t\t\t\t\n\t\t\tif canAddToSht:\t\t\t\t\n\t\t\t\ttry:\n\t\t\t\t\tif view.ViewType == ViewType.Schedule:\n\t\t\t\t\t\tTransactionManager.Instance.EnsureInTransaction(doc)\t\n\t\t\t\t\t\tviewport = ScheduleSheetInstance.Create(doc, sheet.Id, view.Id, loc)\t\n\t\t\t\t\t\tTransactionManager.Instance.TransactionTaskDone()\n\t\t\t\t\t\tviewports.Add([viewport,sheet])\n\t\t\t\t\telif view.ViewType == ViewType.PanelSchedule:\t\t\t\t\n\t\t\t\t\t\tTransactionManager.Instance.EnsureInTransaction(doc)\t\n\t\t\t\t\t\tviewport = pssi.Create(doc, view.Id, sheet)\n\t\t\t\t\t\tviewport.Origin = loc\n\t\t\t\t\t\t\n\t\t\t\t\t\tTransactionManager.Instance.TransactionTaskDone()\n\t\t\t\t\t\tviewports.Add([viewport,sheet])\n\t\t\t\t\telse:\n\t\t\t\t\t\tTransactionManager.Instance.EnsureInTransaction(doc)\t\n\t\t\t\t\t\tviewport = Viewport.Create(doc, sheet.Id, view.Id, loc)\t\n\t\t\t\t\t\tTransactionManager.Instance.TransactionTaskDone()\n\t\t\t\t\t\tviewports.Add([viewport,sheet])\n\t\t\t\texcept Exception, e:\n\t\t\t\t\tfailed.Add([str(e),sheet])\n\t\t\telse:\n\t\t\t\tfailed.Add([\"Failed\",sheet])\n\t\ti = i+1\n\tOUT = [viewports, failed]\nelse:\n\tOUT = \"Error! The number of views you want to place must match the number of Location Points\"\n",
+      "VariableInputPorts": true,
+      "Id": "8b336fdfa2134add80b7d69ffe71cde5",
+      "Inputs": [
+        {
+          "Id": "8e177265867b499896b62be8c4a87b97",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "31e32dd1621d49a18845ab76e7f32fc2",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "0b2b7db606bb4097bb22d3907b2a7979",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "24604340a0274ede9fd73367fe7919c6",
+          "Name": "IN[3]",
+          "Description": "Input #3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "2098aa476e0440bbad5c9a0cebf92455",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "Views_and_Schedule",
+        "TypeName": "var",
+        "TypeRank": -1,
+        "DefaultValue": null,
+        "Description": ""
+      },
+      "Id": "033a4f43ea5b4884a9b4f28ba6961ee2",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "7eb34aeef08c488ea329856b7371b790",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "All_Sheets",
+        "TypeName": "var",
+        "TypeRank": -1,
+        "DefaultValue": null,
+        "Description": ""
+      },
+      "Id": "ff086f1ad6684b5eb51bec09dd6243ed",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "298ab15279534c0dbf49ed2949273c1c",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "location",
+        "TypeName": "var",
+        "TypeRank": -1,
+        "DefaultValue": null,
+        "Description": ""
+      },
+      "Id": "860bcc238ba34190b15824b1ef4a9db9",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "8a9a7ab908a541369ba052a7cfbd2d6a",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "Refresh",
+        "TypeName": "bool",
+        "TypeRank": 0,
+        "DefaultValue": "true",
+        "Description": ""
+      },
+      "Id": "01c5da84019d440e85ae5af1514bf12e",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "f1d97f42a5814e7d9fec9bfbf0409e62",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+      "NodeType": "OutputNode",
+      "ElementResolver": null,
+      "Symbol": "OUT",
+      "Id": "649f85af1c324358b34c28cb63f0616d",
+      "Inputs": [
+        {
+          "Id": "d3a9fb5541584e22bed31d4dcda90b47",
+          "Name": "",
+          "Description": "",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [],
+      "Replication": "Disabled",
+      "Description": "A function output, use with custom nodes"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "2098aa476e0440bbad5c9a0cebf92455",
+      "End": "d3a9fb5541584e22bed31d4dcda90b47",
+      "Id": "d530dca4b4144c56a0e82d65d832808b"
+    },
+    {
+      "Start": "7eb34aeef08c488ea329856b7371b790",
+      "End": "8e177265867b499896b62be8c4a87b97",
+      "Id": "0aec2352e3694fd0979363ad838cd62e"
+    },
+    {
+      "Start": "298ab15279534c0dbf49ed2949273c1c",
+      "End": "31e32dd1621d49a18845ab76e7f32fc2",
+      "Id": "6025d2a802a247c68b076d05d2eced45"
+    },
+    {
+      "Start": "8a9a7ab908a541369ba052a7cfbd2d6a",
+      "End": "0b2b7db606bb4097bb22d3907b2a7979",
+      "Id": "0ada74359e1c4368a97222c4012cb5e2"
+    },
+    {
+      "Start": "f1d97f42a5814e7d9fec9bfbf0409e62",
+      "End": "24604340a0274ede9fd73367fe7919c6",
+      "Id": "69aabec6e9be4227ad8c8475997a0c46"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": false,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.6.2.15705",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Place Legend/Schedule On Sheet(s) (py)",
+        "Id": "8b336fdfa2134add80b7d69ffe71cde5",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 250.0,
+        "Y": 0.0
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "033a4f43ea5b4884a9b4f28ba6961ee2",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -134.42913887734176,
+        "Y": -137.93809911644234
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "ff086f1ad6684b5eb51bec09dd6243ed",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -95.317838458321944,
+        "Y": 15.617473648923067
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "860bcc238ba34190b15824b1ef4a9db9",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -95.317838458321944,
+        "Y": 165.61747364892307
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "01c5da84019d440e85ae5af1514bf12e",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -88.074271227602878,
+        "Y": 280.65142560452625
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Output",
+        "Id": "649f85af1c324358b34c28cb63f0616d",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 628.99999999999989,
+        "Y": 0.0
+      }
+    ],
+    "Annotations": [],
+    "X": 131.42620376536377,
+    "Y": 316.25096300951174,
+    "Zoom": 0.38288018031172483
+  }
+}
